@@ -138,19 +138,22 @@ if (SpeechRecognition) {
   statusText.textContent = 'Mic belum didukung browser ini — pakai kotak teks di atas ya!';
 }
 
-// ===== JAWABAN ESA (PLACEHOLDER — GANTI DENGAN AI API NANTI) =====
-// TODO: ganti fungsi ini dengan panggilan ke AI API (Gemini) pada tahap berikutnya.
-function handleQuestion(question){
+// ===== JAWABAN ESA VIA GEMINI (lewat Vercel) =====
+const ESA_API_URL = 'https://esa-backend.vercel.app/api/ask'; // ganti sesuai URL Vercel kamu
+
+async function handleQuestion(question){
   statusText.textContent = 'Esa lagi mikir...';
   setExpression('thinking');
 
-  setTimeout(() => {
-    const fallbackAnswers = [
-      'Pertanyaan bagus! Nanti aku belajar jawab ini pakai AI ya~',
-      'Hmm, seru nih! Fitur jawab pintar Esa lagi disiapkan.',
-      'Wah aku catat dulu ya, nanti aku kasih jawaban lengkap!'
-    ];
-    const answer = fallbackAnswers[Math.floor(Math.random()*fallbackAnswers.length)];
-    say(answer, 'talking');
-  }, 900);
+  try {
+    const res = await fetch(ESA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+    say(data.answer || 'Esa bingung nih, coba tanya lagi ya!', 'talking');
+  } catch (err) {
+    say('Waduh, koneksi Esa lagi bermasalah. Coba lagi sebentar lagi ya!', 'surprised');
+  }
 }
