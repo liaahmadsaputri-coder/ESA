@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ESA ✦ Teman Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="sparkles"></div>
+
+  <div class="app-window">
+    <div class="title-bar">
+      <span class="title-text">✦ ESA.exe ✦</span>
+      <div class="title-dots">
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-mint"></span>
+        <span class="dot dot-pink"></span>
+      </div>
+    </div>
+
+    <div class="screen">
+
+      <div class="speech-bubble" id="speechBubble">
+        <p id="speechText">Hai! Aku Esa ✦ Tanya aku apa saja, ya!</p>
+      </div>
+
+      <div class="stage">
+        <div class="stage-floor"></div>
+
+        <div class="robot" id="esa">
+          <div class="antenna">
+            <div class="antenna-stick"></div>
+            <div class="antenna-ball"></div>
+          </div>
+
+          <div class="head">
+            <div class="eye eye-left"><div class="pupil"></div></div>
+            <div class="eye eye-right"><div class="pupil"></div></div>
+            <div class="mouth" id="mouth"></div>
+            <div class="cheek cheek-left"></div>
+            <div class="cheek cheek-right"></div>
+          </div>
+
+          <div class="body">
+            <div class="arm arm-left"></div>
+            <div class="arm arm-right"></div>
+            <div class="panel-light"></div>
+          </div>
+
+          <div class="feet">
+            <div class="foot"></div>
+            <div class="foot"></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="status-text" id="statusText">Esa lagi santai~</p>
+
+      <div class="transcript" id="transcript"></div>
+
+      <div class="controls">
+        <button class="btn btn-mic" id="micBtn">🎤 Tanya Esa</button>
+        <button class="btn btn-secondary" id="waveBtn">👋 Sapa</button>
+        <button class="btn btn-secondary" id="jumpBtn">⬆ Lompat</button>
+      </div>
+
+    </div>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
