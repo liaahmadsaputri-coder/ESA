@@ -139,7 +139,7 @@ if (SpeechRecognition) {
 }
 
 // ===== JAWABAN ESA VIA GEMINI (lewat Vercel) =====
-const ESA_API_URL = 'https://esa-backend.vercel.app/api/ask'; // ganti sesuai URL Vercel kamu
+const ESA_API_URL = 'https://esa-nu.vercel.app/api/ask'; // ganti sesuai URL Vercel kamu
 
 async function handleQuestion(question){
   statusText.textContent = 'Esa lagi mikir...';
