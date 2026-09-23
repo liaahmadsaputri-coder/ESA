@@ -11,6 +11,19 @@ export default async function handler(req, res) {
   if (!question) return res.status(400).json({ error: 'Pertanyaan kosong' });
 
   try {
+    const answer = await askGeminiWithRetry(question);
+    res.status(200).json({ answer });
+  } catch (err) {
+    console.log('Fetch error:', err.message);
+    res.status(500).json({ error: 'Gagal menghubungi Gemini', detail: err.message });
+  }
+}
+
+// Coba panggil Gemini, otomatis retry kalau server lagi sibuk (503)
+async function askGeminiWithRetry(question, maxRetries = 2) {
+  const fallbackText = 'Waduh, Esa lagi banyak yang nanya nih. Coba tanya lagi sebentar ya!';
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -28,17 +41,22 @@ export default async function handler(req, res) {
     );
 
     const data = await geminiRes.json();
+    console.log(`Gemini status (percobaan ${attempt + 1}):`, geminiRes.status);
 
-    // LOG buat debugging — cek di Vercel > Deployments > Runtime Logs
-    console.log('Gemini status:', geminiRes.status);
-    console.log('Gemini response:', JSON.stringify(data));
+    // Kalau berhasil, langsung balikin jawabannya
+    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (answer) return answer;
 
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text
-      || 'Waduh, Esa belum bisa jawab ini sekarang. Coba tanya lagi ya!';
+    // Kalau server sibuk (503) dan masih ada jatah retry, tunggu sebentar lalu coba lagi
+    const isOverloaded = data?.error?.code === 503;
+    if (isOverloaded && attempt < maxRetries) {
+      console.log('Gemini sibuk, retry dalam 1.2 detik...');
+      await new Promise(r => setTimeout(r, 1200));
+      continue;
+    }
 
-    res.status(200).json({ answer });
-  } catch (err) {
-    console.log('Fetch error:', err.message);
-    res.status(500).json({ error: 'Gagal menghubungi Gemini', detail: err.message });
+    // Sudah habis jatah retry, atau error lain (bukan 503) — kirim fallback
+    console.log('Gemini response (gagal final):', JSON.stringify(data));
+    return fallbackText;
   }
 }
