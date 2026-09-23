@@ -62,13 +62,43 @@ waveBtn.addEventListener('click', () => {
 });
 
 // ===== TEXT TO SPEECH =====
+let cachedVoices = [];
+
+function loadVoices(){
+  cachedVoices = window.speechSynthesis.getVoices();
+}
+loadVoices();
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function pickEsaVoice(){
+  if (!cachedVoices.length) return null;
+
+  // kata kunci yang biasanya nandain suara laki-laki di berbagai browser/OS
+  const maleHints = ['male', 'pria', 'laki', 'boy', 'man'];
+  const idVoices = cachedVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith('id'));
+  const pool = idVoices.length ? idVoices : cachedVoices;
+
+  const maleMatch = pool.find(v => maleHints.some(hint => v.name.toLowerCase().includes(hint)));
+  if (maleMatch) return maleMatch;
+
+  // fallback: ambil suara Indonesia pertama, atau suara pertama yang ada
+  return pool[0] || null;
+}
+
 function speak(text){
   if(!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'id-ID';
-  utter.pitch = 1.3;
-  utter.rate = 1.02;
+
+  const voice = pickEsaVoice();
+  if (voice) utter.voice = voice;
+
+  // pitch dinaikin sedikit aja biar kedengeran muda & ceria, tapi ga kedengeran dibuat-buat
+  utter.pitch = 1.08;
+  utter.rate = 1.04;
 
   utter.onstart = () => esa.classList.add('talking');
   utter.onend = () => {
