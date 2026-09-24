@@ -62,7 +62,7 @@ function addEsaMessage(text, expression = 'talking'){
     speak(text); // jawaban pendek langsung dibacakan otomatis
   } else {
     setTimeout(() => setExpression(null), 900);
-    statusText.textContent = 'Esa lagi santai~';
+    statusText.textContent = 'Sistem Esa: aktif âœ¦';
   }
 }
 
@@ -87,7 +87,7 @@ esa.addEventListener('click', () => {
   statusText.textContent = 'Hihi, geli~';
   setTimeout(() => {
     setExpression(null);
-    statusText.textContent = 'Esa lagi santai~';
+    statusText.textContent = 'Sistem Esa: aktif âœ¦';
   }, 700);
 });
 
@@ -128,7 +128,7 @@ function speak(text){
   utter.onend = () => {
     esa.classList.remove('talking');
     setExpression(null);
-    statusText.textContent = 'Esa lagi santai~';
+    statusText.textContent = 'Sistem Esa: aktif âœ¦';
   };
   window.speechSynthesis.speak(utter);
 }
