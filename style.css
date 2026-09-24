@@ -1,140 +1,201 @@
-:root{
+:akar{
   --pink:#ffb6d9;
   --pink-dark:#ff8fc7;
-  --blue:#a8d8ea;
+  --biru:#a8d8ea;
   --lavender:#cdb4db;
   --mint:#b8f2e6;
-  --yellow:#fff3b0;
+  --kuning:#fff3b0;
   --cream:#fff8f0;
-  --ink:#4a3f55;
+  --tinta:#4a3f55;
 }
 
 *{box-sizing:border-box;}
 
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(135deg,var(--lavender),var(--blue));
-  font-family:'Baloo 2',sans-serif;
-  color:var(--ink);
-  padding:16px;
-  overflow-x:hidden;
+html,body{
+  tinggi:100%;
 }
 
-.sparkles{
-  position:fixed;
-  inset:0;
+tubuh{
+  margin:0;
+  min-height:100dvh;
+  tampilan:fleksibel;
+  sejajarkan item:tengah;
+  justify-content:center;
+  latar belakang:gradien linier(135deg,var(--lavender),var(--biru));
+  font-family:'Baloo 2',sans-serif;
+  warna:var(--tinta);
+  padding:16px;
+  padding-top:max(16px, env(safe-area-inset-top, 0px));
+  padding-bottom:max(16px, env(safe-area-inset-bottom, 0px));
+  overflow-x:tersembunyi;
+}
+
+.kilauan{
+  posisi:tetap;
+  sisipan:0;
   pointer-events:none;
-  background-image:
-    radial-gradient(circle,#fff 2px, transparent 2px),
-    radial-gradient(circle,#fff 2px, transparent 2px),
-    radial-gradient(circle,#fff 1.5px, transparent 1.5px);
-  background-size:140px 140px, 200px 200px, 90px 90px;
+  gambar latar belakang:
+    gradien radial(lingkaran,#fff 2px, transparan 2px),
+    gradien radial(lingkaran,#fff 2px, transparan 2px),
+    gradien radial(lingkaran,#fff 1.5px, transparan 1.5px);
+  Ukuran latar belakang: 140px 140px, 200px 200px, 90px 90px;
   background-position:0 0, 60px 90px, 30px 40px;
-  opacity:.5;
-  animation:twinkle 3s ease-in-out infinite alternate;
+  opasitas: 0,5;
+  animasi:berkedip 3 detik, masuk-keluar perlahan, bergantian tak terbatas;
 }
 @keyframes twinkle{from{opacity:.25;} to{opacity:.6;}}
 
-.app-window{
-  width:100%;
-  max-width:420px;
-  background:var(--cream);
-  border:4px solid var(--ink);
-  border-radius:18px;
-  box-shadow:8px 8px 0 rgba(74,63,85,.35);
-  overflow:hidden;
+/* ---------- JENDELA ---------- */
+.jendela aplikasi{
+  lebar:100%;
+  lebar maksimum:960px;
+  tinggi:min(88dvh, 720px);
+  latar belakang:var(--cream);
+  batas:4px solid var(--ink);
+  radius batas: 18px;
+  bayangan kotak:8px 8px 0 rgba(74,63,85,.35);
+  overflow:tersembunyi;
+  tampilan:fleksibel;
+  arah-fleksibel: kolom;
 }
 
 .title-bar{
-  background:var(--pink-dark);
+  latar belakang:var(--pink-dark);
   border-bottom:4px solid var(--ink);
   padding:10px 14px;
-  display:flex;
-  align-items:center;
+  tampilan:fleksibel;
+  sejajarkan item:tengah;
   justify-content:space-between;
+  fleksibel-menyusut:0;
 }
 .title-text{
   font-family:'Press Start 2P',monospace;
-  font-size:10px;
-  color:#fff;
-  text-shadow:1px 1px 0 var(--ink);
+  ukuran font:10px;
+  warna:#fff;
+  bayangan teks:1px 1px 0 var(--tinta);
 }
 .title-dots{display:flex; gap:6px;}
 .dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);}
-.dot-yellow{background:var(--yellow);}
-.dot-mint{background:var(--mint);}
-.dot-pink{background:var(--pink);}
+.titik-kuning{latar belakang:var(--kuning);}
+.dot-mint{latar belakang:var(--mint);}
+.dot-merah muda{latar belakang:var(--merah muda);}
 
-.screen{
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-}
-
-.speech-bubble{
-  background:#fff;
-  border:3px solid var(--ink);
-  border-radius:16px;
-  padding:12px 16px;
-  width:100%;
-  min-height:40px;
-  text-align:center;
-  position:relative;
-}
-.speech-bubble p{margin:0; font-size:14px; font-weight:700;}
-.speech-bubble::after{
-  content:"";
-  position:absolute;
-  bottom:-12px;
-  left:50%;
-  transform:translateX(-50%);
-  border:8px solid transparent;
-  border-top-color:var(--ink);
-}
-.speech-bubble::before{
-  content:"";
-  position:absolute;
-  bottom:-8px;
-  left:50%;
-  transform:translateX(-50%);
-  border:7px solid transparent;
-  border-top-color:#fff;
-  z-index:1;
+/* ---------- BADAN: 2 PANEL ---------- */
+.app-body{
+  fleksibel:1;
+  tinggi minimum:0;
+  tampilan:fleksibel;
+  arah-fleksibel: kolom;
 }
 
-.stage{
-  position:relative;
-  width:100%;
-  height:230px;
-  display:flex;
-  align-items:flex-end;
+.panel{
+  tampilan:fleksibel;
+  arah-fleksibel: kolom;
+  tinggi minimum:0;
+}
+
+/* TEKS PANEL */
+.panel-teks{
+  fleksibel:1 1 45%;
+  tinggi minimum:0;
+  border-bottom:4px dashed var(--ink);
+  latar belakang:var(--cream);
+}
+.panel-header{
+  font-family:'Press Start 2P',monospace;
+  ukuran font:9px;
+  padding:10px 14px;
+  warna:var(--tinta);
+  opasitas: 0,75;
+  fleksibel-menyusut:0;
+}
+.log-pesan{
+  fleksibel:1;
+  tinggi minimum:0;
+  overflow-y:auto;
+  padding:0 16px 16px;
+  tampilan:fleksibel;
+  arah-fleksibel: kolom;
+  gap:10px;
+  -webkit-overflow-scrolling:sentuh;
+}
+
+.msg{
+  lebar maksimum:88%;
+  padding:10px 14px;
+  batas:3px solid var(--ink);
+  radius batas: 14px;
+  ukuran font:14px;
+  ketebalan huruf:700;
+  Tinggi baris: 1,4;
+}
+.msg p{margin:0;}
+.msg-esa{
+  latar belakang:#fff;
+  sejajarkan diri:mulai-fleksibel;
+  radius batas bawah-kiri:2px;
+}
+.msg-user{
+  latar belakang:var(--kuning);
+  sejajarkan diri:ujung-fleksibel;
+  radius batas bawah kanan: 2px;
+  ketebalan huruf:600;
+  opasitas: 0,9;
+}
+
+.tombol baca{
+  margin-atas: 6px;
+  sejajarkan diri:mulai-fleksibel;
+  font-family:'Baloo 2',sans-serif;
+  ketebalan huruf:700;
+  ukuran font:12px;
+  padding:6px 12px;
+  batas:2px solid var(--ink);
+  radius batas:12px;
+  latar belakang:var(--mint);
+  kursor:penunjuk;
+  bayangan kotak:2px 2px 0 var(--tinta);
+}
+.read-btn:active{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink);}
+
+/* ROBOT PANEL */
+.panel-robot{
+  fleksibel:1 1 55%;
+  tinggi minimum:0;
+  padding:12px 20px;
+  sejajarkan item:tengah;
+  gap:10px;
+  overflow-y:auto;
+}
+
+.panggung{
+  posisi:relatif;
+  lebar:100%;
+  fleksibel:1;
+  min-height:150px;
+  tampilan:fleksibel;
+  sejajarkan item:ujung-fleksibel;
   justify-content:center;
 }
-.stage-floor{
-  position:absolute;
-  bottom:0;
-  width:80%;
-  height:14px;
-  background:var(--mint);
-  border:3px solid var(--ink);
-  border-radius:50%;
-  opacity:.6;
+.lantai panggung{
+  posisi:absolut;
+  bawah:0;
+  lebar:80%;
+  tinggi:14px;
+  latar belakang:var(--mint);
+  batas:3px solid var(--ink);
+  radius-batas:50%;
+  opasitas: 0,6;
 }
 
 /* ---------- ROBOT ---------- */
 .robot{
-  position:relative;
-  width:160px;
-  cursor:pointer;
-  user-select:none;
-  animation:idleBob 2.4s ease-in-out infinite;
-  transform-origin:bottom center;
+  posisi:relatif;
+  lebar:150px;
+  kursor:penunjuk;
+  pilihan pengguna:tidak ada;
+  animasi:idleBob 2.4s ease-in-out tak terbatas;
+  transform-origin: tengah bawah;
 }
 
 @keyframes idleBob{
@@ -142,113 +203,113 @@ body{
   50%{transform:translateY(-8px) rotate(-1.5deg);}
 }
 
-.antenna{
-  position:absolute;
-  top:-38px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  animation:antennaWiggle 2.4s ease-in-out infinite;
-  transform-origin:bottom center;
+.antena{
+  posisi:absolut;
+  atas:-38px;
+  kiri:50%;
+  transformasi:translasiX(-50%);
+  tampilan:fleksibel;
+  arah-fleksibel: kolom;
+  sejajarkan item:tengah;
+  animasi:antennaWiggle 2.4s ease-in-out tak terbatas;
+  transform-origin: tengah bawah;
 }
 @keyframes antennaWiggle{
   0%,100%{transform:translateX(-50%) rotate(0deg);}
   50%{transform:translateX(-50%) rotate(8deg);}
 }
 .antenna-stick{width:4px;height:22px;background:var(--ink);}
-.antenna-ball{
-  width:16px;height:16px;border-radius:50%;
-  background:var(--yellow);
-  border:3px solid var(--ink);
-  margin-top:-4px;
-  box-shadow:0 0 10px var(--yellow);
+.bola-antena{
+  lebar:16px;tinggi:16px;radius-batas:50%;
+  latar belakang:var(--kuning);
+  batas:3px solid var(--ink);
+  margin-atas:-4px;
+  bayangan kotak:0 0 10px var(--kuning);
 }
 
-.head{
-  position:relative;
-  width:110px;
-  height:90px;
-  background:var(--pink);
-  border:4px solid var(--ink);
+.kepala{
+  posisi:relatif;
+  lebar:110px;
+  tinggi:90px;
+  latar belakang:var(--pink);
+  batas:4px solid var(--ink);
   border-radius:28px 28px 22px 22px;
-  margin:0 auto;
-  display:flex;
-  align-items:center;
+  margin:0 otomatis;
+  tampilan:fleksibel;
+  sejajarkan item:tengah;
   justify-content:center;
 }
 
-.eye{
-  position:absolute;
-  top:32px;
-  width:20px;
-  height:24px;
-  background:#fff;
-  border:3px solid var(--ink);
-  border-radius:50%;
-  display:flex;
-  align-items:center;
+.mata{
+  posisi:absolut;
+  atas:32px;
+  lebar:20px;
+  tinggi:24px;
+  latar belakang:#fff;
+  batas:3px solid var(--ink);
+  radius-batas:50%;
+  tampilan:fleksibel;
+  sejajarkan item:tengah;
   justify-content:center;
-  transition:height .1s ease;
+  transisi:tinggi .1s kemudahan;
 }
 .eye-left{left:22px;}
 .eye-right{right:22px;}
-.pupil{
-  width:9px;height:9px;
-  background:var(--ink);
-  border-radius:50%;
+.murid{
+  lebar:9px;tinggi:9px;
+  latar belakang:var(--tinta);
+  radius-batas:50%;
 }
 
-.cheek{
-  position:absolute;
-  bottom:22px;
-  width:14px;height:8px;
-  background:var(--pink-dark);
-  border-radius:50%;
-  opacity:.7;
+.pipi{
+  posisi:absolut;
+  bawah:22px;
+  lebar:14px;tinggi:8px;
+  latar belakang:var(--pink-dark);
+  radius-batas:50%;
+  opasitas: 0,7;
 }
-.cheek-left{left:12px;}
-.cheek-right{right:12px;}
+.pipi-kiri{kiri:12px;}
+.pipi-kanan{kanan:12px;}
 
-.mouth{
-  position:absolute;
-  bottom:16px;
-  left:50%;
-  transform:translateX(-50%);
-  width:22px;
-  height:8px;
+.mulut{
+  posisi:absolut;
+  bawah:16px;
+  kiri:50%;
+  transformasi:translasiX(-50%);
+  lebar:22px;
+  tinggi:8px;
   border-bottom:4px solid var(--ink);
   border-radius:0 0 12px 12px;
-  transition:all .12s ease;
+  transisi:semua .12s kemudahan;
 }
 
-.body{
-  position:relative;
-  width:80px;
-  height:56px;
-  background:var(--blue);
-  border:4px solid var(--ink);
-  border-radius:20px;
+.tubuh{
+  posisi:relatif;
+  lebar:80px;
+  tinggi:56px;
+  latar belakang:var(--biru);
+  batas:4px solid var(--ink);
+  radius batas: 20px;
   margin:-6px auto 0;
-  display:flex;
-  align-items:center;
+  tampilan:fleksibel;
+  sejajarkan item:tengah;
   justify-content:center;
 }
-.panel-light{
-  width:14px;height:14px;
-  background:var(--mint);
-  border:2px solid var(--ink);
-  border-radius:4px;
+.lampu panel{
+  lebar:14px;tinggi:14px;
+  latar belakang:var(--mint);
+  batas:2px solid var(--ink);
+  radius batas: 4px;
 }
 
-.arm{
-  position:absolute;
-  top:14px;
-  width:16px;height:34px;
-  background:var(--blue);
-  border:3px solid var(--ink);
-  border-radius:10px;
+.lengan{
+  posisi:absolut;
+  atas:14px;
+  lebar:16px;tinggi:34px;
+  latar belakang:var(--biru);
+  batas:3px solid var(--ink);
+  radius batas:10px;
   transform-origin:top center;
 }
 .arm-left{left:-16px; animation:armIdleLeft 2.4s ease-in-out infinite;}
@@ -256,63 +317,61 @@ body{
 @keyframes armIdleLeft{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-6deg);}}
 @keyframes armIdleRight{0%,100%{transform:rotate(0deg);}50%{transform:rotate(6deg);}}
 
-.hand{
-  position:absolute;
-  bottom:-9px;
-  left:50%;
-  transform:translateX(-50%);
-  width:16px;
-  height:14px;
-  background:var(--pink);
-  border:3px solid var(--ink);
-  border-radius:50%;
+.tangan{
+  posisi:absolut;
+  bawah:-9px;
+  kiri:50%;
+  transformasi:translasiX(-50%);
+  lebar:16px;
+  tinggi:14px;
+  latar belakang:var(--pink);
+  batas:3px solid var(--ink);
+  radius-batas:50%;
 }
-.finger{
-  position:absolute;
-  bottom:-5px;
-  width:4px;
-  height:7px;
-  background:var(--pink);
-  border:2px solid var(--ink);
-  border-radius:3px;
+.jari{
+  posisi:absolut;
+  bawah:-5px;
+  lebar:4px;
+  tinggi:7px;
+  latar belakang:var(--pink);
+  batas:2px solid var(--ink);
+  radius batas: 3px;
 }
 .finger.f1{left:-1px;}
 .finger.f2{left:5px;}
 .finger.f3{left:11px;}
 
-.feet{
-  display:flex;
+.kaki{
+  tampilan:fleksibel;
   justify-content:center;
   gap:20px;
-  margin-top:4px;
+  margin-atas:4px;
 }
-.foot{
-  position:relative;
-  width:26px;height:12px;
-  background:var(--lavender);
-  border:3px solid var(--ink);
-  border-radius:8px;
+.kaki{
+  posisi:relatif;
+  lebar:26px;tinggi:12px;
+  latar belakang:var(--lavender);
+  batas:3px solid var(--ink);
+  radius batas: 8px;
 }
-.toe{
-  position:absolute;
-  bottom:-6px;
-  width:6px;height:8px;
-  background:var(--lavender);
-  border:2px solid var(--ink);
-  border-radius:3px;
+.kaki{
+  posisi:absolut;
+  bawah:-6px;
+  lebar:6px;tinggi:8px;
+  latar belakang:var(--lavender);
+  batas:2px solid var(--ink);
+  radius batas: 3px;
 }
 .toe.t1{left:1px;}
 .toe.t2{left:9px;}
 .toe.t3{left:17px;}
 
-/* ---------- STATES ---------- */
-
-/* klik / happy */
+/* ---------- STATUS ---------- */
 .robot.happy .head{background:var(--yellow);}
-.robot.happy .mouth{
-  width:30px;height:16px;
-  border:4px solid var(--ink);
-  border-top:none;
+.robot.bahagia .mulut{
+  lebar:30px;tinggi:16px;
+  batas:4px solid var(--ink);
+  batas atas:tidak ada;
   border-radius:0 0 20px 20px;
 }
 .robot.happy{animation:happyBounce .5s ease;}
@@ -323,125 +382,109 @@ body{
   100%{transform:scale(1);}
 }
 
-/* surprised */
-.robot.surprised .eye{height:26px;width:24px;}
-.robot.surprised .mouth{
-  width:16px;height:16px;
-  border:4px solid var(--ink);
-  border-radius:50%;
+.robot.terkejut .mata{tinggi:26px;lebar:24px;}
+.robot.terkejut .mulut{
+  lebar:16px;tinggi:16px;
+  batas:4px solid var(--ink);
+  radius-batas:50%;
 }
 
-/* thinking */
 .robot.thinking .head{background:var(--mint);}
-.robot.thinking .mouth{
-  width:14px;height:4px;
+.robot.berpikir .mulut{
+  lebar:14px;tinggi:4px;
   border-bottom:4px solid var(--ink);
-  border-radius:0;
-  transform:translateX(-50%) rotate(-8deg);
+  radius batas:0;
+  transformasi:translateX(-50%) rotate(-8deg);
 }
 .robot.thinking .pupil{transform:translateY(-4px);}
 
-/* talking */
-.robot.talking .mouth{
-  animation:talkFlap .28s ease-in-out infinite;
+.robot.bicara .mulut{
+  animasi:talkFlap .28s ease-in-out tak terbatas;
 }
 @keyframes talkFlap{
-  0%,100%{height:6px; border-radius:0 0 12px 12px;}
-  50%{height:16px; border-radius:50%;}
+  0%,100%{tinggi:6px; radius-batas:0 0 12px 12px;}
+  50%{tinggi:16px; radius-batas:50%;}
 }
 
-/* blink */
 .robot.blink .eye{height:3px;}
 
-/* jump */
-.robot.jumping{animation:jumpMove .55s ease;}
-@keyframes jumpMove{
-  0%{transform:translateY(0);}
-  40%{transform:translateY(-55px) rotate(-4deg);}
-  70%{transform:translateY(-55px) rotate(4deg);}
-  100%{transform:translateY(0);}
-}
-
-/* wave — lambaian tangan beneran, bolak-balik */
-.robot.waving .arm-right{
-  animation:waveArm 1.6s ease-in-out;
-  animation-iteration-count:1;
-}
-@keyframes waveArm{
-  0%{transform:rotate(0deg);}
-  10%{transform:rotate(-55deg);}
-  22%{transform:rotate(-20deg);}
-  34%{transform:rotate(-55deg);}
-  46%{transform:rotate(-20deg);}
-  58%{transform:rotate(-55deg);}
-  70%{transform:rotate(-20deg);}
-  85%{transform:rotate(-10deg);}
-  100%{transform:rotate(0deg);}
-}
-
-.status-text{
-  font-size:12px;
-  font-weight:700;
-  color:var(--ink);
-  opacity:.75;
+.status-teks{
+  ukuran font:12px;
+  ketebalan huruf:700;
+  warna:var(--tinta);
+  opasitas: 0,75;
   min-height:16px;
-  text-align:center;
+  teks-sejajar:tengah;
+  fleksibel-menyusut:0;
 }
 
-.transcript{
-  font-size:12px;
-  text-align:center;
-  color:var(--ink);
-  opacity:.6;
-  min-height:16px;
+/* ---------- MASUKAN TEKS ---------- */
+.baris teks{
+  tampilan:fleksibel;
+  celah:8px;
+  lebar:100%;
+  fleksibel-menyusut:0;
 }
-
-/* ---------- INPUT TEKS ---------- */
-.text-row{
-  display:flex;
-  gap:8px;
-  width:100%;
-}
-.text-input{
-  flex:1;
+.teks-masukan{
+  fleksibel:1;
   font-family:'Baloo 2',sans-serif;
-  font-size:13px;
-  padding:10px 12px;
-  border:3px solid var(--ink);
-  border-radius:14px;
-  background:#fff;
-  color:var(--ink);
-  outline:none;
+  ukuran font:14px;
+  padding:12px;
+  min-height:44px;
+  batas:3px solid var(--ink);
+  radius batas: 14px;
+  latar belakang:#fff;
+  warna:var(--tinta);
+  garis besar:tidak ada;
 }
 .text-input:focus{background:var(--cream);}
-.btn-send{background:var(--yellow); padding:10px 14px;}
+.btn-send{background:var(--yellow); padding:10px 16px; min-height:44px;}
 
-.controls{
-  display:flex;
+.kontrol{
+  tampilan:fleksibel;
   gap:10px;
   flex-wrap:wrap;
   justify-content:center;
-  width:100%;
+  lebar:100%;
+  fleksibel-menyusut:0;
 }
 .btn{
   font-family:'Baloo 2',sans-serif;
-  font-weight:700;
-  font-size:13px;
+  ketebalan huruf:700;
+  ukuran font:13px;
   padding:10px 16px;
-  border:3px solid var(--ink);
-  border-radius:14px;
-  background:var(--pink);
-  color:var(--ink);
-  box-shadow:3px 3px 0 var(--ink);
-  cursor:pointer;
-  transition:transform .1s ease;
+  min-height:44px;
+  batas:3px solid var(--ink);
+  radius batas: 14px;
+  latar belakang:var(--pink);
+  warna:var(--tinta);
+  bayangan kotak:3px 3px 0 var(--tinta);
+  kursor:penunjuk;
+  transisi:transformasi .1s kemudahan;
 }
 .btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink);}
-.btn-secondary{background:var(--mint);}
+.btn-mic{width:100%;}
 .btn-mic.listening{background:var(--yellow); animation:pulseMic 1s ease-in-out infinite;}
 @keyframes pulseMic{0%,100%{box-shadow:3px 3px 0 var(--ink);}50%{box-shadow:3px 3px 0 var(--ink),0 0 0 6px rgba(255,182,217,.5);}}
 
+/* ---------- RESPONSIF: LAYAR LEBAR = 2 KOLOM BERDAMPINGAN ---------- */
+@media (min-width:701px){
+  .app-body{
+    flex-direction:row;
+  }
+  .panel-teks{
+    fleksibel:1 1 55%;
+    batas bawah:tidak ada;
+    border-right:4px dashed var(--ink);
+  }
+  .panel-robot{
+    fleksibel:1 1 45%;
+  }
+  .robot{lebar:170px;}
+  .head{width:120px;height:98px;}
+}
+
 @media (max-width:380px){
-  .robot{width:140px;}
+  .robot{lebar:130px;}
   .head{width:96px;height:80px;}
 }
