@@ -1,13 +1,12 @@
 // ===== ELEMEN =====
 const esa = document.getElementById('esa');
-const speechText = document.getElementById('speechText');
+const messageLog = document.getElementById('messageLog');
 const statusText = document.getElementById('statusText');
-const transcriptEl = document.getElementById('transcript');
 const micBtn = document.getElementById('micBtn');
-const waveBtn = document.getElementById('waveBtn');
-const jumpBtn = document.getElementById('jumpBtn');
 const textForm = document.getElementById('textForm');
 const textInput = document.getElementById('textInput');
+
+const READ_THRESHOLD = 110; // di atas jumlah karakter ini, tawarkan opsi baca (ga auto-speak)
 
 // ===== HELPER: ganti ekspresi =====
 function setExpression(exp){
@@ -15,10 +14,55 @@ function setExpression(exp){
   if(exp) esa.classList.add(exp);
 }
 
-function say(text, expression = 'talking'){
-  speechText.textContent = text;
+// ===== HELPER: tambah pesan ke panel teks =====
+function scrollLogToBottom(){
+  messageLog.scrollTop = messageLog.scrollHeight;
+}
+
+function addUserMessage(text){
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.innerHTML = `<p>${escapeHtml(text)}</p>`;
+  messageLog.appendChild(div);
+  scrollLogToBottom();
+}
+
+function addEsaMessage(text, expression = 'talking'){
+  const isLong = text.length > READ_THRESHOLD;
+
+  const div = document.createElement('div');
+  div.className = 'msg msg-esa';
+  div.innerHTML = `<p>${escapeHtml(text)}</p>`;
+
+  if (isLong) {
+    const btn = document.createElement('button');
+    btn.className = 'read-btn';
+    btn.type = 'button';
+    btn.textContent = 'ðŸ”Š Bacakan jawaban ini';
+    btn.addEventListener('click', () => {
+      speak(text);
+      btn.disabled = true;
+      btn.textContent = 'ðŸ”Š Sedang dibacakan...';
+    });
+    div.appendChild(btn);
+  }
+
+  messageLog.appendChild(div);
+  scrollLogToBottom();
+
   setExpression(expression);
-  speak(text);
+  if (!isLong) {
+    speak(text); // jawaban pendek langsung dibacakan otomatis
+  } else {
+    setTimeout(() => setExpression(null), 900);
+    statusText.textContent = 'Esa lagi santai~';
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 // ===== BLINK OTOMATIS =====
@@ -32,33 +76,12 @@ randomBlink();
 
 // ===== KLIK / SENTUH ESA =====
 esa.addEventListener('click', () => {
-  if(esa.classList.contains('jumping')) return;
   setExpression('happy');
   statusText.textContent = 'Hihi, geli~';
   setTimeout(() => {
     setExpression(null);
     statusText.textContent = 'Esa lagi santai~';
   }, 700);
-});
-
-// ===== LOMPAT =====
-jumpBtn.addEventListener('click', () => {
-  if(esa.classList.contains('jumping')) return;
-  esa.classList.add('jumping');
-  setExpression('surprised');
-  setTimeout(() => {
-    esa.classList.remove('jumping');
-    setExpression(null);
-  }, 560);
-});
-
-// ===== SAPA (WAVE) =====
-waveBtn.addEventListener('click', () => {
-  if(esa.classList.contains('waving')) return;
-  esa.classList.add('waving');
-  say('Halo! Aku Esa, senang ketemu kamu! ✦', 'happy');
-  setTimeout(() => esa.classList.remove('waving'), 1650);
-  setTimeout(() => setExpression(null), 1700);
 });
 
 // ===== TEXT TO SPEECH =====
@@ -74,16 +97,11 @@ if ('speechSynthesis' in window) {
 
 function pickEsaVoice(){
   if (!cachedVoices.length) return null;
-
-  // kata kunci yang biasanya nandain suara laki-laki di berbagai browser/OS
   const maleHints = ['male', 'pria', 'laki', 'boy', 'man'];
   const idVoices = cachedVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith('id'));
   const pool = idVoices.length ? idVoices : cachedVoices;
-
   const maleMatch = pool.find(v => maleHints.some(hint => v.name.toLowerCase().includes(hint)));
   if (maleMatch) return maleMatch;
-
-  // fallback: ambil suara Indonesia pertama, atau suara pertama yang ada
   return pool[0] || null;
 }
 
@@ -96,7 +114,6 @@ function speak(text){
   const voice = pickEsaVoice();
   if (voice) utter.voice = voice;
 
-  // pitch dinaikin sedikit aja biar kedengeran muda & ceria, tapi ga kedengeran dibuat-buat
   utter.pitch = 1.08;
   utter.rate = 1.04;
 
@@ -114,7 +131,7 @@ textForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const text = textInput.value.trim();
   if(!text) return;
-  transcriptEl.textContent = `Kamu: "${text}"`;
+  addUserMessage(text);
   textInput.value = '';
   handleQuestion(text);
 });
@@ -133,14 +150,14 @@ if (SpeechRecognition) {
   recognition.onstart = () => {
     isListening = true;
     micBtn.classList.add('listening');
-    micBtn.textContent = '🎤 Mendengarkan...';
+    micBtn.textContent = 'ðŸŽ¤ Mendengarkan...';
     statusText.textContent = 'Aku dengerin kok, ngomong aja~';
     setExpression('thinking');
   };
 
   recognition.onresult = (event) => {
     const text = event.results[0][0].transcript;
-    transcriptEl.textContent = `Kamu: "${text}"`;
+    addUserMessage(text);
     handleQuestion(text);
   };
 
@@ -152,7 +169,7 @@ if (SpeechRecognition) {
   recognition.onend = () => {
     isListening = false;
     micBtn.classList.remove('listening');
-    micBtn.textContent = '🎤 Tanya Esa';
+    micBtn.textContent = 'ðŸŽ¤ Tanya Esa';
   };
 
   micBtn.addEventListener('click', () => {
@@ -164,8 +181,8 @@ if (SpeechRecognition) {
   });
 } else {
   micBtn.disabled = true;
-  micBtn.textContent = '🎤 Tidak didukung';
-  statusText.textContent = 'Mic belum didukung browser ini — pakai kotak teks di atas ya!';
+  micBtn.textContent = 'ðŸŽ¤ Tidak didukung';
+  statusText.textContent = 'Mic belum didukung browser ini â€” pakai kotak teks di atas ya!';
 }
 
 // ===== JAWABAN ESA VIA GEMINI (lewat Vercel) =====
@@ -182,8 +199,8 @@ async function handleQuestion(question){
       body: JSON.stringify({ question })
     });
     const data = await res.json();
-    say(data.answer || 'Esa bingung nih, coba tanya lagi ya!', 'talking');
+    addEsaMessage(data.answer || 'Esa bingung nih, coba tanya lagi ya!', 'talking');
   } catch (err) {
-    say('Waduh, koneksi Esa lagi bermasalah. Coba lagi sebentar lagi ya!', 'surprised');
+    addEsaMessage('Waduh, koneksi Esa lagi bermasalah. Coba lagi sebentar lagi ya!', 'surprised');
   }
 }
