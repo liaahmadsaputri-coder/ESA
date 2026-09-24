@@ -414,7 +414,7 @@ body.mode-chat .message-log{
 /* ================= BAR BAWAH ================= */
 .bottom-bar{
   flex-shrink:0;
-  border-top:3px dashed var(--ink);
+  border-top:none;
   padding:10px 16px;
   display:flex;
   flex-direction:column;
