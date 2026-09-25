@@ -62,7 +62,7 @@ function addEsaMessage(text, expression = 'talking'){
     speak(text); // jawaban pendek langsung dibacakan otomatis
   } else {
     setTimeout(() => setExpression(null), 900);
-    statusText.textContent = 'Sistem Esa: aktif âœ¦';
+    statusText.textContent = 'Sistem Esa: aktif \u{2726}';
   }
 }
 
@@ -70,6 +70,16 @@ function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// Jaring pengaman: hapus sisa simbol markdown kalau masih kebawa dari Gemini
+function cleanMarkdown(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/#{1,6}\s?/g, '')
+    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
+    .trim();
 }
 
 // ===== BLINK OTOMATIS =====
@@ -87,7 +97,7 @@ esa.addEventListener('click', () => {
   statusText.textContent = 'Hihi, geli~';
   setTimeout(() => {
     setExpression(null);
-    statusText.textContent = 'Sistem Esa: aktif âœ¦';
+    statusText.textContent = 'Sistem Esa: aktif \u{2726}';
   }, 700);
 });
 
@@ -128,7 +138,7 @@ function speak(text){
   utter.onend = () => {
     esa.classList.remove('talking');
     setExpression(null);
-    statusText.textContent = 'Sistem Esa: aktif âœ¦';
+    statusText.textContent = 'Sistem Esa: aktif \u{2726}';
   };
   window.speechSynthesis.speak(utter);
 }
@@ -206,7 +216,8 @@ async function handleQuestion(question){
       body: JSON.stringify({ question })
     });
     const data = await res.json();
-    addEsaMessage(data.answer || 'Esa bingung nih, coba tanya lagi ya!', 'talking');
+    const rawAnswer = data.answer || 'Esa bingung nih, coba tanya lagi ya!';
+    addEsaMessage(cleanMarkdown(rawAnswer), 'talking');
   } catch (err) {
     addEsaMessage('Waduh, koneksi Esa lagi bermasalah. Coba lagi sebentar lagi ya!', 'surprised');
   }
