@@ -6,7 +6,6 @@ const micBtn = document.getElementById('micBtn');
 const textForm = document.getElementById('textForm');
 const textInput = document.getElementById('textInput');
 
-const READ_THRESHOLD = 280;     // di atas jumlah karakter ini, tawarkan tombol baca (ga auto-speak)
 const MAX_QUESTION_LENGTH = 300; // harus sama dengan batas di api/ask.js
 const MAX_HISTORY_ITEMS = 6;     // jumlah pesan terakhir yang dikirim sebagai konteks
 const IDLE_STATUS = 'Sistem Esa: aktif \u2726';
@@ -57,37 +56,32 @@ function addUserMessage(text){
 }
 
 function addEsaMessage(text, expression = 'talking'){
-  const isLong = text.length > READ_THRESHOLD;
-
   const div = document.createElement('div');
   div.className = 'msg msg-esa';
   div.innerHTML = `<p>${escapeHtml(text)}</p>`;
 
-  if (isLong) {
-    const btn = document.createElement('button');
-    btn.className = 'read-btn';
-    btn.type = 'button';
-    btn.textContent = '\u{1F50A} Bacakan jawaban ini';
-    btn.addEventListener('click', () => {
-      btn.disabled = true;
-      btn.textContent = '\u{1F50A} Sedang dibacakan...';
-      speak(text, () => {
-        btn.disabled = false;
-        btn.textContent = '\u{1F50A} Bacakan lagi';
-      });
+  // Tombol baca ada di setiap jawaban. Suara HANYA jalan kalau tombol ini diklik.
+  const btn = document.createElement('button');
+  btn.className = 'read-btn';
+  btn.type = 'button';
+  btn.textContent = '\u{1F50A} Bacakan jawaban ini';
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    btn.textContent = '\u{1F50A} Sedang dibacakan...';
+    speak(text, () => {
+      btn.disabled = false;
+      btn.textContent = '\u{1F50A} Bacakan lagi';
     });
-    div.appendChild(btn);
-  }
+  });
+  div.appendChild(btn);
 
   messageLog.appendChild(div);
   scrollLogToBottom();
 
+  // Ekspresi sebentar saja, lalu santai lagi (tanpa suara)
   setExpression(expression);
-  if (!isLong) {
-    speak(text); // jawaban pendek langsung dibacakan otomatis
-  } else {
-    setTimeout(resetIdle, 900);
-  }
+  setTimeout(resetIdle, 900);
 }
 
 // Jaring pengaman: hapus sisa simbol markdown kalau masih kebawa dari Gemini
@@ -120,9 +114,9 @@ esa.addEventListener('click', () => {
   }, 700);
 });
 
-// ===== TEXT TO SPEECH =====
+// ===== TEXT TO SPEECH (hanya lewat tombol Bacakan) =====
 let cachedVoices = [];
-let speechUnlocked = false;
+let currentUtter = null;
 
 function loadVoices(){
   if (!('speechSynthesis' in window)) return;
@@ -131,16 +125,6 @@ function loadVoices(){
 loadVoices();
 if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
-}
-
-// Safari iOS cuma ngebolehin suara kalau "dibuka" dulu lewat sentuhan langsung.
-// Dipanggil saat tombol Kirim / Mic ditekan, sebelum nunggu jawaban dari server.
-function unlockSpeech(){
-  if (speechUnlocked || !('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(' ');
-  u.volume = 0;
-  window.speechSynthesis.speak(u);
-  speechUnlocked = true;
 }
 
 function pickEsaVoice(){
@@ -161,141 +145,4 @@ function speak(text, onDone){
   }
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'id-ID';
-
-  const voice = pickEsaVoice();
-  if (voice) utter.voice = voice;
-
-  utter.pitch = 1.08;
-  utter.rate = 1.04;
-
-  const finish = () => {
-    resetIdle();
-    if (onDone) onDone();
-  };
-
-  utter.onstart = () => esa.classList.add('talking');
-  utter.onend = finish;
-  utter.onerror = finish;
-  window.speechSynthesis.speak(utter);
-}
-
-// ===== KIRIM PERTANYAAN (dipakai oleh teks & mic) =====
-function submitQuestion(rawText){
-  const text = (rawText || '').trim().slice(0, MAX_QUESTION_LENGTH);
-  if (!text || isBusy) return;
-  unlockSpeech();
-  addUserMessage(text);
-  handleQuestion(text);
-}
-
-// ===== INPUT TEKS =====
-textForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  if (isBusy) return;
-  const text = textInput.value;
-  if (!text.trim()) return;
-  textInput.value = '';
-  submitQuestion(text);
-});
-
-// ===== SPEECH TO TEXT (MIC) =====
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition = null;
-let isListening = false;
-let gotResult = false;
-let hadError = false;
-
-if (SpeechRecognition) {
-  recognition = new SpeechRecognition();
-  recognition.lang = 'id-ID';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onstart = () => {
-    isListening = true;
-    gotResult = false;
-    hadError = false;
-    micBtn.classList.add('listening');
-    micBtn.textContent = '\u{1F3A4} Mendengarkan...';
-    statusText.textContent = 'Aku dengerin kok, ngomong aja~';
-    setExpression('thinking');
-  };
-
-  recognition.onresult = (event) => {
-    gotResult = true;
-    const text = event.results[0][0].transcript;
-    submitQuestion(text);
-  };
-
-  recognition.onerror = () => {
-    hadError = true;
-    statusText.textContent = 'Waduh, suaranya kurang jelas. Coba lagi, ya!';
-    setExpression(null);
-  };
-
-  recognition.onend = () => {
-    isListening = false;
-    micBtn.classList.remove('listening');
-    micBtn.textContent = '\u{1F3A4} Tanya Esa';
-    // Kalau mic berhenti tanpa hasil (anak diam saja), balikin Esa ke santai
-    if (!gotResult && !hadError && !isBusy) resetIdle();
-  };
-
-  micBtn.addEventListener('click', () => {
-    if (isListening) {
-      recognition.stop();
-    } else if (!isBusy) {
-      unlockSpeech();
-      recognition.start();
-    }
-  });
-} else {
-  micBtn.disabled = true;
-  micBtn.textContent = '\u{1F3A4} Tidak didukung';
-  statusText.textContent = 'Mic belum didukung browser ini, pakai kotak teks di bawah ya!';
-}
-
-// ===== JAWABAN ESA VIA GEMINI (lewat Vercel) =====
-const ESA_API_URL = 'https://esa-nu.vercel.app/api/ask';
-
-async function handleQuestion(question){
-  isBusy = true;
-  textInput.disabled = false;
-  statusText.textContent = 'Esa lagi mikir...';
-  setExpression('thinking');
-
-  try {
-    const res = await fetch(ESA_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        question,
-        history: chatHistory.slice(-MAX_HISTORY_ITEMS)
-      })
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok || !data.answer) {
-      isBusy = false;
-      addEsaMessage('Esa bingung nih, coba tanya lagi ya!', 'surprised');
-      return;
-    }
-
-    const answer = cleanMarkdown(data.answer);
-
-    // Simpan ke riwayat hanya kalau jawabannya asli (bukan pesan fallback)
-    if (!data.fallback) {
-      chatHistory.push({ role: 'user', text: question });
-      chatHistory.push({ role: 'model', text: answer });
-      chatHistory = chatHistory.slice(-MAX_HISTORY_ITEMS);
-    }
-
-    isBusy = false;
-    addEsaMessage(answer, data.fallback ? 'surprised' : 'talking');
-  } catch (err) {
-    isBusy = false;
-    addEsaMessage('Waduh, koneksi Esa lagi bermasalah. Coba lagi sebentar lagi ya!', 'surprised');
-  }
-}
+  currentUtter = utter;
