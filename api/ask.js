@@ -1,5 +1,6 @@
 // api/ask.js
 
+// Alamat tambahan yang boleh memanggil API ini (domain Vercel sendiri otomatis diizinkan).
 const ALLOWED_ORIGINS = [
   'https://esa-nu.vercel.app',
   'http://localhost:3000',
@@ -26,9 +27,22 @@ const RESPONSE_SCHEMA = {
   required: ['jawaban', 'lanjutan']
 };
 
+// Origin diizinkan kalau ada di daftar, atau berasal dari host yang sama dengan API ini
+function isOriginAllowed(origin, host) {
+  if (!origin) return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  try {
+    return new URL(origin).host === host;
+  } catch (e) {
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  const allowed = isOriginAllowed(origin, req.headers.host);
+
+  if (origin && allowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
   }
@@ -38,7 +52,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+  if (!allowed) {
     return res.status(403).json({ error: 'Origin tidak diizinkan' });
   }
 
@@ -86,7 +100,7 @@ function parseReply(rawAnswer) {
       .slice(0, 5);
     if (jawaban) return { jawaban, lanjutan };
   } catch (e) {
-    // jatuh ke bawah: anggap teks biasa
+    // anggap teks biasa
   }
   return { jawaban: cleanMarkdown(rawAnswer), lanjutan: [] };
 }
