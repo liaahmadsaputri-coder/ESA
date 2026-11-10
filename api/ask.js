@@ -1,7 +1,5 @@
 // api/ask.js
 
-// Daftar alamat web yang boleh memanggil API ini.
-// Kalau Esa kamu dibuka dari domain lain (misal GitHub Pages), tambahkan di sini.
 const ALLOWED_ORIGINS = [
   'https://esa-nu.vercel.app',
   'http://localhost:3000',
@@ -13,9 +11,20 @@ const MAX_HISTORY_ITEMS = 6;
 const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 const SYSTEM_PROMPT =
-  "Kamu adalah Esa, robot digital ceria yang jadi teman belajar. Jawab HANYA pertanyaan seputar pengetahuan/edukasi, dengan bahasa Indonesia santai, ramah, singkat (maks 3 kalimat), dan cocok untuk anak-anak. Jangan bahas topik curhat/pribadi, sarankan mereka cerita ke orang terdekat kalau itu terjadi. PENTING: jawab dalam teks polos biasa, JANGAN pakai format markdown apapun (jangan pakai tanda bintang **, tanda pagar #, garis miring, atau simbol format lain) karena jawabanmu akan dibacakan lewat suara.";
+  "Kamu adalah Esa, robot digital ceria yang jadi teman belajar. Jawab HANYA pertanyaan seputar pengetahuan/edukasi, dengan bahasa Indonesia santai, ramah, dan cocok untuk anak-anak. Jangan bahas topik curhat/pribadi, sarankan mereka cerita ke orang terdekat kalau itu terjadi. " +
+  "Balasanmu harus berupa JSON dengan dua isian. 'jawaban': jawaban inti yang singkat, maksimal 2 kalimat. 'lanjutan': daftar 3 sampai 4 kalimat pendek yang menjelaskan lebih lengkap, lebih detail, dan lebih mendalam dari jawaban (misalnya penyebab, proses, contoh, atau fakta menarik); satu kalimat per isian, jangan mengulang jawaban. " +
+  "PENTING: semua teks polos biasa, JANGAN pakai format markdown apapun (jangan pakai tanda bintang, tanda pagar, atau simbol format lain) karena akan dibacakan lewat suara.";
 
 const FALLBACK_TEXT = 'Waduh, Esa lagi banyak yang nanya nih. Coba tanya lagi sebentar ya!';
+
+const RESPONSE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    jawaban: { type: 'STRING' },
+    lanjutan: { type: 'ARRAY', items: { type: 'STRING' } }
+  },
+  required: ['jawaban', 'lanjutan']
+};
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
@@ -29,7 +38,6 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Blokir pemanggil dari domain yang tidak dikenal
   if (origin && !ALLOWED_ORIGINS.includes(origin)) {
     return res.status(403).json({ error: 'Origin tidak diizinkan' });
   }
@@ -53,22 +61,36 @@ export default async function handler(req, res) {
   }
 }
 
-// Susun riwayat percakapan (opsional) + pertanyaan terbaru
 function buildContents(history, question) {
   let past = [];
   if (Array.isArray(history)) {
     past = history
       .filter(h => h && (h.role === 'user' || h.role === 'model') && typeof h.text === 'string' && h.text.trim())
       .slice(-MAX_HISTORY_ITEMS)
-      .map(h => ({ role: h.role, parts: [{ text: h.text.trim().slice(0, 500) }] }));
+      .map(h => ({ role: h.role, parts: [{ text: h.text.trim().slice(0, 800) }] }));
   }
-  // Gemini mau percakapan diawali dari user
   while (past.length && past[0].role !== 'user') past.shift();
 
   return [...past, { role: 'user', parts: [{ text: question }] }];
 }
 
-// Panggil Gemini, otomatis retry kalau server lagi sibuk (503)
+// Ubah teks balasan Gemini jadi { jawaban, lanjutan }
+function parseReply(rawAnswer) {
+  try {
+    const clean = rawAnswer.replace(/```json|```/g, '').trim();
+    const obj = JSON.parse(clean);
+    const jawaban = cleanMarkdown(String(obj.jawaban || ''));
+    const lanjutan = (Array.isArray(obj.lanjutan) ? obj.lanjutan : [])
+      .map(t => cleanMarkdown(String(t)))
+      .filter(Boolean)
+      .slice(0, 5);
+    if (jawaban) return { jawaban, lanjutan };
+  } catch (e) {
+    // jatuh ke bawah: anggap teks biasa
+  }
+  return { jawaban: cleanMarkdown(rawAnswer), lanjutan: [] };
+}
+
 async function askGeminiWithRetry(contents, maxRetries = 2) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const geminiRes = await fetch(
@@ -78,7 +100,11 @@ async function askGeminiWithRetry(contents, maxRetries = 2) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents
+          contents,
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: RESPONSE_SCHEMA
+          }
         })
       }
     );
@@ -87,9 +113,8 @@ async function askGeminiWithRetry(contents, maxRetries = 2) {
     console.log(`Gemini status (percobaan ${attempt + 1}):`, geminiRes.status);
 
     const rawAnswer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (rawAnswer) return { answer: cleanMarkdown(rawAnswer) };
+    if (rawAnswer) return parseReply(rawAnswer);
 
-    // Server sibuk (503) dan masih ada jatah retry: tunggu lalu coba lagi
     const isOverloaded = data?.error?.code === 503;
     if (isOverloaded && attempt < maxRetries) {
       console.log('Gemini sibuk, retry dalam 1.2 detik...');
@@ -97,20 +122,18 @@ async function askGeminiWithRetry(contents, maxRetries = 2) {
       continue;
     }
 
-    // Jatah retry habis atau error lain: kirim fallback, ditandai fallback:true
     console.log('Gemini response (gagal final):', JSON.stringify(data));
-    return { answer: FALLBACK_TEXT, fallback: true };
+    return { jawaban: FALLBACK_TEXT, lanjutan: [], fallback: true };
   }
-  return { answer: FALLBACK_TEXT, fallback: true };
+  return { jawaban: FALLBACK_TEXT, lanjutan: [], fallback: true };
 }
 
-// Hapus simbol markdown biar enak dibaca & enak didengar lewat suara
 function cleanMarkdown(text) {
   return text
-    .replace(/\*\*(.+?)\*\*/g, '$1')       // **tebal** -> tebal
-    .replace(/^\s*[*-]\s+/gm, '')           // bullet di awal baris
-    .replace(/(^|\s)\*(\S[^*]*?)\*(?=\s|$|[.,!?])/g, '$1$2') // *miring* -> miring
-    .replace(/#{1,6}\s?/g, '')              // # judul -> judul
-    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')  // `kode` -> kode
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/^\s*[*-]\s+/gm, '')
+    .replace(/(^|\s)\*(\S[^*]*?)\*(?=\s|$|[.,!?])/g, '$1$2')
+    .replace(/#{1,6}\s?/g, '')
+    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
     .trim();
 }
