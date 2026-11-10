@@ -14,6 +14,11 @@ const MAX_HISTORY_ITEMS = 6;
 const IDLE_STATUS = 'Sistem Esa: aktif \u2726';
 const SPEAKING_STATUS = 'Sistem Esa: sedang bicara \u2726';
 
+// Kalau dibuka dari Vercel (domain apa pun), pakai alamat yang sama. Selain itu pakai alamat utama.
+const ESA_API_URL = /\.vercel\.app$/.test(location.hostname)
+  ? '/api/ask'
+  : 'https://esa-nu.vercel.app/api/ask';
+
 const SPEAKER_ICON =
   '<svg viewBox="0 0 24 24" aria-hidden="true">' +
   '<path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/>' +
@@ -25,10 +30,16 @@ answerSpeak.innerHTML = SPEAKER_ICON;
 
 // ===== STATE =====
 let isBusy = false;
-let chatHistory = [];     // [{ role: 'user' | 'model', text }]
-let segments = [];        // [jawaban, lanjutan1, lanjutan2, ...] -> urutan baca
-let speakToken = 0;       // penanda sesi baca; naik tiap stop/mulai baru
+let chatHistory = [];   // [{ role: 'user' | 'model', text }]
+let segments = [];      // [jawaban, lanjutan1, lanjutan2, ...] = urutan baca
+let speakToken = 0;
 let isSpeaking = false;
+
+// ===== MODE TAMPILAN: awal (robot besar) -> chat (jawaban + lanjutan) =====
+function enterChatMode(){
+  document.body.classList.remove('mode-idle');
+  document.body.classList.add('mode-chat');
+}
 
 // ===== EKSPRESI =====
 function setExpression(exp){
@@ -57,6 +68,7 @@ function renderAnswer(jawaban, lanjutan){
   segments = [jawaban, ...lanjutan];
 
   answerText.textContent = jawaban;
+  answerText.scrollTop = 0;
   answerSpeak.disabled = false;
 
   detailList.innerHTML = '';
@@ -77,7 +89,7 @@ function renderAnswer(jawaban, lanjutan){
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Bacakan dari poin ini');
     btn.innerHTML = SPEAKER_ICON;
-    btn.addEventListener('click', () => speakFrom(i + 1)); // +1 karena indeks 0 = jawaban
+    btn.addEventListener('click', () => speakFrom(i + 1)); // indeks 0 = jawaban
 
     const p = document.createElement('p');
     p.textContent = text;
@@ -149,14 +161,9 @@ function speakFrom(start){
   esa.classList.add('talking');
   statusText.textContent = SPEAKING_STATUS;
 
-  const finishAll = () => {
-    if (token !== speakToken) return;
-    stopSpeaking();
-  };
-
   const next = (i) => {
     if (token !== speakToken) return;
-    if (i >= segments.length) { finishAll(); return; }
+    if (i >= segments.length) { stopSpeaking(); return; }
 
     highlightSegment(i);
     const utter = new SpeechSynthesisUtterance(segments[i]);
@@ -166,7 +173,7 @@ function speakFrom(start){
     utter.pitch = 1.08;
     utter.rate = 1.04;
     utter.onend = () => next(i + 1);
-    utter.onerror = () => finishAll();
+    utter.onerror = () => { if (token === speakToken) stopSpeaking(); };
     window.speechSynthesis.speak(utter);
   };
 
@@ -174,7 +181,7 @@ function speakFrom(start){
   setTimeout(() => next(start), 60);
 }
 
-// Speaker di kolom jawaban: tap = baca dari awal sampai akhir, tap lagi = berhenti
+// Speaker di kolom jawaban: tap = baca semuanya, tap lagi = berhenti
 answerSpeak.addEventListener('click', () => {
   if (isSpeaking) stopSpeaking();
   else speakFrom(0);
@@ -183,8 +190,8 @@ answerSpeak.addEventListener('click', () => {
 // ===== BLINK OTOMATIS =====
 function randomBlink(){
   esa.classList.add('blink');
-  setTimeout(()=> esa.classList.remove('blink'), 150);
-  setTimeout(randomBlink, 2000 + Math.random()*3000);
+  setTimeout(() => esa.classList.remove('blink'), 150);
+  setTimeout(randomBlink, 2000 + Math.random() * 3000);
 }
 randomBlink();
 
@@ -268,8 +275,6 @@ if (SpeechRecognition) {
 }
 
 // ===== JAWABAN ESA VIA GEMINI (lewat Vercel) =====
-const ESA_API_URL = 'https://esa-nu.vercel.app/api/ask';
-
 function showReply(jawaban, lanjutan, expression){
   isBusy = false;
   renderAnswer(jawaban, lanjutan);
@@ -280,11 +285,14 @@ function showReply(jawaban, lanjutan, expression){
 
 async function handleQuestion(question){
   stopSpeaking();
+  enterChatMode();
   isBusy = true;
   statusText.textContent = 'Esa lagi mikir...';
   setExpression('thinking');
   answerText.textContent = 'Esa lagi mikir...';
   answerSpeak.disabled = true;
+  segments = [];
+  detailList.innerHTML = '';
 
   try {
     const res = await fetch(ESA_API_URL, {
