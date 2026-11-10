@@ -44,9 +44,10 @@ body{
 
 /* ---------- WINDOW ---------- */
 .app-window{
+  position:relative;
   width:100%;
   max-width:480px;
-  height:min(90dvh, 760px);
+  height:min(92dvh, 820px);
   background:var(--cream);
   border:4px solid var(--ink);
   border-radius:18px;
@@ -77,56 +78,146 @@ body{
 .dot-mint{background:var(--mint);}
 .dot-pink{background:var(--pink);}
 
-/* ================= ROBOT STAGE (2 MODE) ================= */
-.robot-stage{
+/* ================= KOLOM JAWABAN ================= */
+.answer-box{
+  flex:0 0 auto;
+  max-height:30%;
+  margin:12px 12px 0;
+  padding:10px 12px 10px 16px;
+  background:#fff;
+  border:3px solid var(--pink-dark);
+  border-radius:16px;
   display:flex;
   align-items:center;
-  overflow:visible;
-  transition:padding .4s ease, min-height .4s ease, background .4s ease;
+  gap:10px;
+  transition:background .2s ease;
 }
-
-/* -- Mode IDLE: robot gede, di tengah, ambil ruang paling banyak -- */
-body.mode-idle .robot-stage{
+.answer-box.reading{background:var(--yellow);}
+.answer-text{
   flex:1;
-  flex-direction:column;
+  min-width:0;
+  margin:0;
+  max-height:100%;
+  overflow-y:auto;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.35;
+}
+
+.icon-btn{
+  flex-shrink:0;
+  background:none;
+  border:none;
+  padding:2px;
+  min-width:32px;
+  min-height:32px;
+  display:flex;
+  align-items:center;
   justify-content:center;
-  gap:16px;
-  padding:20px 16px;
+  color:var(--pink-dark);
+  cursor:pointer;
+  border-radius:8px;
+}
+.icon-btn svg{display:block;}
+.icon-btn:disabled{opacity:.35; cursor:default;}
+.icon-btn.active{color:var(--ink);}
+.answer-box .icon-btn svg{width:30px;height:30px;}
+
+/* ================= BARIS TENGAH ================= */
+.main-row{
+  flex:1;
+  min-height:0;
+  display:flex;
+  gap:10px;
+  padding:12px;
 }
 
-/* -- Mode CHAT: robot kecil, jadi strip di atas -- */
-body.mode-chat .robot-stage{
-  flex:0 0 auto;
-  flex-direction:row;
-  justify-content:flex-start;
-  gap:12px;
-  min-height:88px;
-  padding:14px 16px;
+/* ---------- PANEL ROBOT ---------- */
+.robot-panel{
+  flex:0 0 42%;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  padding:34px 6px 12px;
   background:linear-gradient(180deg, var(--pink) 0%, var(--cream) 100%);
-  border-bottom:3px dashed var(--ink);
+  border:3px solid var(--pink-dark);
+  border-radius:16px;
+  overflow:visible;
 }
-
 .status-text{
+  margin:0;
   font-size:12px;
   font-weight:700;
-  color:var(--ink);
-  opacity:.8;
-  flex-shrink:0;
+  text-align:center;
+  opacity:.85;
 }
 
+/* ---------- PANEL LANJUTAN ---------- */
+.detail-panel{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  background:var(--cream);
+  border:3px solid var(--pink-dark);
+  border-radius:16px;
+  overflow:hidden;
+}
+.detail-title{
+  flex-shrink:0;
+  background:var(--pink);
+  padding:9px 12px;
+  font-family:'Press Start 2P',monospace;
+  font-size:10px;
+  color:#fff;
+  text-shadow:1px 1px 0 var(--ink);
+}
+.detail-list{
+  list-style:none;
+  margin:0;
+  padding:8px;
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  -webkit-overflow-scrolling:touch;
+}
+.detail-item{
+  display:flex;
+  align-items:flex-start;
+  gap:4px;
+  padding:4px 6px 4px 2px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:500;
+  line-height:1.4;
+  transition:background .2s ease;
+}
+.detail-item p{margin:0; padding-top:3px; min-width:0; overflow-wrap:anywhere;}
+.detail-item .icon-btn svg{width:20px;height:20px;}
+.detail-item.reading{background:var(--yellow);}
+.detail-empty{
+  font-size:13px;
+  font-weight:500;
+  opacity:.7;
+  padding:6px;
+}
 
-/* ---------- ROBOT (ukuran dikontrol via --s, ga pake transform-scale) ---------- */
+/* ================= ROBOT (ukuran via --s) ================= */
 .robot{
-  --s: 1;
+  --s: .85;
   position:relative;
   width:calc(150px * var(--s));
   cursor:pointer;
   user-select:none;
   animation:idleBob 2.4s ease-in-out infinite;
   transform-origin:bottom center;
-  transition:width .4s ease;
 }
-body.mode-chat .robot{ --s: 0.42; }
 
 @keyframes idleBob{
   0%,100%{transform:translateY(0) rotate(0deg);}
@@ -143,20 +234,18 @@ body.mode-chat .robot{ --s: 0.42; }
   align-items:center;
   animation:antennaWiggle 2.4s ease-in-out infinite;
   transform-origin:bottom center;
-  transition:top .4s ease;
 }
 @keyframes antennaWiggle{
   0%,100%{transform:translateX(-50%) rotate(0deg);}
   50%{transform:translateX(-50%) rotate(8deg);}
 }
-.antenna-stick{width:calc(4px * var(--s));height:calc(22px * var(--s));background:var(--ink); transition:width .4s ease, height .4s ease;}
+.antenna-stick{width:calc(4px * var(--s));height:calc(22px * var(--s));background:var(--ink);}
 .antenna-ball{
   width:calc(16px * var(--s));height:calc(16px * var(--s));border-radius:50%;
   background:var(--yellow);
   border:calc(3px * var(--s)) solid var(--ink);
   margin-top:calc(-4px * var(--s));
   box-shadow:0 0 10px var(--yellow);
-  transition:width .4s ease, height .4s ease;
 }
 
 .head{
@@ -170,7 +259,6 @@ body.mode-chat .robot{ --s: 0.42; }
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:width .4s ease, height .4s ease;
 }
 
 .eye{
@@ -184,7 +272,7 @@ body.mode-chat .robot{ --s: 0.42; }
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:height .1s ease, width .4s ease, top .4s ease;
+  transition:height .1s ease;
 }
 .eye-left{left:calc(22px * var(--s));}
 .eye-right{right:calc(22px * var(--s));}
@@ -214,7 +302,7 @@ body.mode-chat .robot{ --s: 0.42; }
   height:calc(8px * var(--s));
   border-bottom:calc(4px * var(--s)) solid var(--ink);
   border-radius:0 0 calc(12px * var(--s)) calc(12px * var(--s));
-  transition:all .12s ease, width .4s ease;
+  transition:all .12s ease;
 }
 
 .body{
@@ -228,7 +316,6 @@ body.mode-chat .robot{ --s: 0.42; }
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:width .4s ease, height .4s ease;
 }
 .panel-light{
   width:calc(14px * var(--s));height:calc(14px * var(--s));
@@ -245,7 +332,6 @@ body.mode-chat .robot{ --s: 0.42; }
   border:calc(3px * var(--s)) solid var(--ink);
   border-radius:calc(10px * var(--s));
   transform-origin:top center;
-  transition:width .4s ease, height .4s ease;
 }
 .arm-left{left:calc(-16px * var(--s)); animation:armIdleLeft 2.4s ease-in-out infinite;}
 .arm-right{right:calc(-16px * var(--s)); animation:armIdleRight 2.4s ease-in-out infinite;}
@@ -301,7 +387,7 @@ body.mode-chat .robot{ --s: 0.42; }
 .toe.t2{left:calc(9px * var(--s));}
 .toe.t3{left:calc(17px * var(--s));}
 
-/* ---------- STATES / EKSPRESI ---------- */
+/* ---------- EKSPRESI ---------- */
 .robot.happy .head{background:var(--yellow);}
 .robot.happy .mouth{
   width:30px;height:16px;
@@ -343,80 +429,10 @@ body.mode-chat .robot{ --s: 0.42; }
 
 .robot.blink .eye{height:3px;}
 
-/* ================= SAPAAN AWAL vs LOG PERCAKAPAN ================= */
-.idle-greeting{
-  text-align:center;
-  padding:0 20px 16px;
-}
-.idle-greeting p{
-  margin:0;
-  background:#fff;
-  border:3px solid var(--ink);
-  border-radius:16px;
-  padding:12px 16px;
-  font-size:14px;
-  font-weight:700;
-  display:inline-block;
-}
-body.mode-chat .idle-greeting{ display:none; }
-
-.message-log{
-  display:none;
-  min-height:0;
-  overflow-y:auto;
-  padding:14px 16px;
-  flex-direction:column;
-  gap:10px;
-  -webkit-overflow-scrolling:touch;
-}
-body.mode-chat .message-log{
-  display:flex;
-  flex:1;
-}
-
-.msg{
-  max-width:88%;
-  padding:10px 14px;
-  border:3px solid var(--ink);
-  border-radius:14px;
-  font-size:14px;
-  font-weight:700;
-  line-height:1.4;
-}
-.msg p{margin:0;}
-.msg-esa{
-  background:#fff;
-  align-self:flex-start;
-  border-bottom-left-radius:2px;
-}
-.msg-user{
-  background:var(--yellow);
-  align-self:flex-end;
-  border-bottom-right-radius:2px;
-  font-weight:600;
-  opacity:.9;
-}
-
-.read-btn{
-  margin-top:6px;
-  align-self:flex-start;
-  font-family:'Baloo 2',sans-serif;
-  font-weight:700;
-  font-size:12px;
-  padding:6px 12px;
-  border:2px solid var(--ink);
-  border-radius:12px;
-  background:var(--mint);
-  cursor:pointer;
-  box-shadow:2px 2px 0 var(--ink);
-}
-.read-btn:active{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink);}
-
 /* ================= BAR BAWAH ================= */
 .bottom-bar{
   flex-shrink:0;
-  border-top:none;
-  padding:10px 16px;
+  padding:4px 16px 14px;
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -443,7 +459,7 @@ body.mode-chat .message-log{
   outline:none;
 }
 .text-input:focus{background:var(--cream);}
-.btn-send{background:var(--yellow); padding:10px 16px; min-height:44px; flex-shrink:0;}
+.btn-send{background:var(--pink); padding:10px 16px; min-height:44px; flex-shrink:0;}
 
 .btn{
   font-family:'Baloo 2',sans-serif;
@@ -464,7 +480,7 @@ body.mode-chat .message-log{
 .btn-mic.listening{background:var(--yellow); animation:pulseMic 1s ease-in-out infinite;}
 @keyframes pulseMic{0%,100%{box-shadow:3px 3px 0 var(--ink);}50%{box-shadow:3px 3px 0 var(--ink),0 0 0 6px rgba(255,182,217,.5);}}
 
-/* ================= RESPONSIVE: LAYAR LEBAR ================= */
+/* ================= LAYAR LEBAR ================= */
 @media (min-width:701px){
   .app-window{ max-width:640px; }
 }
